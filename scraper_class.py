@@ -10,6 +10,8 @@ class Scraper:
 
     def accept_cookies_and_exit_signup(self):
 
+        self.driver.implicitly_wait(3)
+
         exit_signup_button = self.driver.find_element(by=By.XPATH, value='//*[@id="home"]/div[4]/div/div[2]/button')
         exit_signup_button.click()
 
@@ -53,4 +55,5 @@ class Scraper:
 
     def scrape_description(self):
         pass
+
 
