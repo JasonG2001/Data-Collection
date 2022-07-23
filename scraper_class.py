@@ -2,15 +2,18 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 import time
 
+class Scraper:
+    pass
+
 driver = webdriver.Chrome()
 driver.get("https://www.myprotein.com/")
 
-exit_signup_button = driver.find_element(by=By.XPATH, value='//*[@id="home"]/div[4]/div/div[2]/button')
-exit_signup_button.click()
+def accept_cookies_and_exit_signup():
 
-
-accept_cookies_button = driver.find_element(by=By.XPATH, value='//*[@id="home"]/div[1]/div/div/div[2]/button')
-accept_cookies_button.click()
+    exit_signup_button = driver.find_element(by=By.XPATH, value='//*[@id="home"]/div[4]/div/div[2]/button')
+    exit_signup_button.click()
+    accept_cookies_button = driver.find_element(by=By.XPATH, value='//*[@id="home"]/div[1]/div/div/div[2]/button')
+    accept_cookies_button.click()
 
 def open_protein_page():
         
@@ -40,5 +43,14 @@ def open_vegans_page():
 def open_creatine_page():
     creatine_button = driver.find_element(by=By.XPATH, value= '//*[@id="mainContent"]/div[2]/a[5]')
     creatine_button.click()
+
+def scrape_price():
+    pass
+
+def scrape_review():
+    pass
+
+def scrape_description():
+    pass
 
 driver.quit()
