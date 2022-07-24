@@ -4,20 +4,16 @@ import time
 from web_navigator import WebNavigator
 
 class Scraper:
-    def __init__(self):
 
-        self.driver = webdriver.Chrome()
-        self.driver.get("https://www.myprotein.com/")
+    def scrape_links(self):
+        item_container = self.driver.find_element(by=By.XPATH, value='')
+        item_list = item_container.find_element(by=By.XPATH, value='./div')
+        link_list = []
 
-    def accept_cookies_and_exit_signup(self):
-
-        self.driver.implicitly_wait(3)
-
-        exit_signup_button = self.driver.find_element(by=By.XPATH, value='//*[@id="home"]/div[4]/div/div[2]/button')
-        exit_signup_button.click()
-
-        accept_cookies_button = self.driver.find_element(by=By.XPATH, value='//*[@id="home"]/div[1]/div/div/div[2]/button')
-        accept_cookies_button.click()
+        for item in item_list:
+            a_tag = item.driver.find_element(by=By.XPATH, value='a')
+            link = a_tag.get_attribute('href')
+            link_list.append(link)
 
     def scrape_price(self):
         pass
