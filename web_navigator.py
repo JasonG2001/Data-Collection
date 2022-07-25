@@ -56,6 +56,8 @@ class WebNavigator:
         # self.driver.quit()
 
 
+if __name__ == "__main__":
+    wn = WebNavigator()
+    wn.run()  
+    
 
-web_navigator = WebNavigator()
-web_navigator.run()
