@@ -11,6 +11,16 @@ class Scraper():
         self.web_navigator = web_navigator
         self.products = self.web_navigator.get_driver().find_elements(By.CLASS_NAME, "athenaProductBlock")
 
+    def scrape_name(self):
+
+        name_list = []
+
+        for product in self.products:
+            name = product.find_element(By.CLASS_NAME, "athenaProductBlock_productName").text
+            name_list.append(name)
+
+        return name_list
+    
     def scrape_links(self):
         
         link_list = []
@@ -50,10 +60,10 @@ class Scraper():
 
 
 web_navigator = WebNavigator()
-web_navigator.open_creatine_page()
+web_navigator.open_protein_page()
 
 scrape = Scraper(web_navigator)
-print(scrape.scrape_links())
+print(scrape.scrape_name())
 
 web_navigator.driver.quit()
 
