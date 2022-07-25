@@ -9,16 +9,20 @@ class WebNavigator:
 
         self.driver = webdriver.Chrome()
         self.driver.get("https://www.myprotein.com/")
+        self.accept_cookies_and_exit_signup()
 
     def accept_cookies_and_exit_signup(self):
 
-        self.driver.implicitly_wait(3)
+        self.driver.implicitly_wait(10)
 
         exit_signup_button = self.driver.find_element(by=By.XPATH, value='//*[@id="home"]/div[4]/div/div[2]/button')
         exit_signup_button.click()
 
         accept_cookies_button = self.driver.find_element(by=By.XPATH, value='//*[@id="home"]/div[1]/div/div/div[2]/button')
         accept_cookies_button.click()
+
+    def get_driver(self):
+        return self.driver
 
     def open_protein_page(self):
         
@@ -49,11 +53,6 @@ class WebNavigator:
         creatine_button = self.driver.find_element(by=By.XPATH, value= '//*[@id="mainContent"]/div[2]/a[6]')
         creatine_button.click()
 
-    def run(self):
-
-        self.accept_cookies_and_exit_signup()
-        self.open_creatine_page()
-        # self.driver.quit()
 
 
 if __name__ == "__main__":
