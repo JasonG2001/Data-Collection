@@ -53,10 +53,18 @@ class WebNavigator:
         creatine_button = self.driver.find_element(by=By.XPATH, value= '//*[@id="mainContent"]/div[2]/a[6]')
         creatine_button.click()
 
+    def go_to_product_link(self, product_link):
+        # a_tag = product.find_element(by=By.TAG_NAME, value='a')
+        # link = a_tag.get_attribute('href')
+        self.driver.get(product_link)
+
+
 
 
 if __name__ == "__main__":
     wn = WebNavigator()
-    wn.run()  
+    wn.open_creatine_page()
+    time.sleep(3)
+    wn.go_to_product_link()
     
 

@@ -6,7 +6,7 @@ from web_navigator import WebNavigator
 
 class Scraper():
 
-    def __init__(self, web_navigator):
+    def __init__(self, web_navigator: WebNavigator):
         
         self.web_navigator = web_navigator
         self.products = self.web_navigator.get_driver().find_elements(By.CLASS_NAME, "athenaProductBlock")
@@ -32,6 +32,22 @@ class Scraper():
 
         return link_list
 
+    def scrape_description(self):
+
+        description_list = []
+
+        # gets a list of the link for each product page
+        product_links = list(map(lambda product : product.find_element(by=By.TAG_NAME, value="a").get_attribute("href"), self.products))
+
+        for product in product_links:
+            self.web_navigator.go_to_product_link(product)
+            # TODO:: after the web navigator goes to the product link self.products elements are stale and cannot be used - needs fixing
+
+            description = self.web_navigator.get_driver().find_element(By.CLASS_NAME, "productDescription_synopsisContent").text
+            description_list.append(description)
+
+        return description_list
+
 
     def scrape_price(self):
         
@@ -54,16 +70,12 @@ class Scraper():
 
         return review_list
 
-    
-    def scrape_description(self):
-        pass
-
 
 web_navigator = WebNavigator()
-web_navigator.open_protein_page()
+web_navigator.open_creatine_page()
 
 scrape = Scraper(web_navigator)
-print(scrape.scrape_name())
+print(scrape.scrape_description())
 
 web_navigator.driver.quit()
 
