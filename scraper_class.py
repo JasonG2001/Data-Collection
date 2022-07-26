@@ -32,6 +32,9 @@ class Scraper():
 
         return link_list
 
+
+    '''
+
     def scrape_description(self):
 
         description_list = []
@@ -47,6 +50,8 @@ class Scraper():
             description_list.append(description)
 
         return description_list
+
+    '''
 
 
     def scrape_price(self):
@@ -75,7 +80,7 @@ web_navigator = WebNavigator()
 web_navigator.open_creatine_page()
 
 scrape = Scraper(web_navigator)
-print(scrape.scrape_description())
+print(scrape.scrape_links())
 
 web_navigator.driver.quit()
 

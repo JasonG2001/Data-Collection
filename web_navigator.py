@@ -24,6 +24,18 @@ class WebNavigator:
     def get_driver(self):
         return self.driver
 
+    def visit_link(self, link_list): #
+        link_list = self.scrape_links()
+
+        for link in link_list:
+            self.driver.get(link)
+
+
+        pass
+
+    def scroll_down_page(self, scroll_amount):
+        self.driver.execute_script(f"window.scrollBy(0, {scroll_amount});")
+
     def open_protein_page(self):
         
         protein_button = self.driver.find_element(by=By.XPATH, value= '//*[@id="mainContent"]/div[2]/a[1]')
@@ -60,11 +72,9 @@ class WebNavigator:
 
 
 
-
 if __name__ == "__main__":
     wn = WebNavigator()
     wn.open_creatine_page()
     time.sleep(3)
-    wn.go_to_product_link()
     
 
