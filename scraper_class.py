@@ -4,7 +4,7 @@ from selenium.webdriver.common.keys import Keys
 import time
 from web_navigator import WebNavigator
 
-class Scraper():
+class Scraper:
 
     def __init__(self, web_navigator: WebNavigator):
         
@@ -75,12 +75,22 @@ class Scraper():
 
         return review_list
 
+    def scrape_reviews(self):
 
-web_navigator = WebNavigator()
-web_navigator.open_creatine_page()
+        rating_list = []
 
-scrape = Scraper(web_navigator)
-print(scrape.scrape_links())
+        for product in self.products:
+            ratings = product.find_element(By.CLASS_NAME, "productBlock_ratingStarsContainer")
+            rating_list.append(ratings)
 
-web_navigator.driver.quit()
+        return rating_list
+
+if __name__ == "__main__":
+    web_navigator = WebNavigator()
+    web_navigator.open_protein_page() # For specific page
+
+    scrape = Scraper(web_navigator)
+    print(scrape.scrape_name()) # Scrapes specified information
+
+    web_navigator.driver.quit()
 

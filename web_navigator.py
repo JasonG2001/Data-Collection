@@ -13,7 +13,8 @@ class WebNavigator:
 
     def accept_cookies_and_exit_signup(self):
 
-        self.driver.implicitly_wait(10)
+        WAIT_TIME = 10
+        self.driver.implicitly_wait(WAIT_TIME)
 
         exit_signup_button = self.driver.find_element(by=By.XPATH, value='//*[@id="home"]/div[4]/div/div[2]/button')
         exit_signup_button.click()
@@ -25,7 +26,8 @@ class WebNavigator:
         return self.driver
 
     def visit_link(self, link_list): #
-        link_list = self.scrape_links()
+        scraper = self.Scraper()
+        link_list = scraper.scrape_links()
 
         for link in link_list:
             self.driver.get(link)
@@ -74,7 +76,7 @@ class WebNavigator:
 
 if __name__ == "__main__":
     wn = WebNavigator()
-    wn.open_creatine_page()
+    wn.open_protein_page()
     time.sleep(3)
     
 
