@@ -58,7 +58,7 @@ class WebNavigator:
         vitamins_button = self.driver.find_element(by=By.XPATH, value= '//*[@id="mainContent"]/div[2]/a[4]')
         vitamins_button.click()
 
-    def open_vegans_page(self):
+    def open_vegan_page(self):
         
         vegans_button = self.driver.find_element(by=By.XPATH, value= '//*[@id="mainContent"]/div[2]/a[5]')
         vegans_button.click()

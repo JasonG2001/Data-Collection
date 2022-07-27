@@ -17,6 +17,9 @@ class Scraper:
         self.scrape_price()
         self.scrape_number_of_reviews() 
 
+        time.sleep(1)
+        self.web_navigator.driver.quit()
+
     def scrape_name(self) -> list:
 
         name_list: list = []
@@ -130,9 +133,8 @@ class Scraper:
 
 if __name__ == "__main__":
     web_navigator = WebNavigator()
-    web_navigator.open_creatine_page() # For specific page
+    web_navigator.open_protein_page() # For specific page
 
     scrape = Scraper(web_navigator)
 
-    web_navigator.driver.quit()
 
