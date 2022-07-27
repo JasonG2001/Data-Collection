@@ -5,21 +5,21 @@ import time
 
 class WebNavigator:
     
-    def __init__(self):
+    def __init__(self) -> None:
 
-        self.driver = webdriver.Chrome()
+        self.driver: webdriver = webdriver.Chrome()
         self.driver.get("https://www.myprotein.com/")
         self.accept_cookies_and_exit_signup()
 
-    def accept_cookies_and_exit_signup(self):
+    def accept_cookies_and_exit_signup(self) -> None:
 
-        WAIT_TIME = 10
+        WAIT_TIME: int = 10
         self.driver.implicitly_wait(WAIT_TIME)
 
-        exit_signup_button = self.driver.find_element(by=By.XPATH, value='//*[@id="home"]/div[4]/div/div[2]/button')
+        exit_signup_button: None = self.driver.find_element(by=By.XPATH, value='//*[@id="home"]/div[4]/div/div[2]/button')
         exit_signup_button.click()
 
-        accept_cookies_button = self.driver.find_element(by=By.XPATH, value='//*[@id="home"]/div[1]/div/div/div[2]/button')
+        accept_cookies_button: None = self.driver.find_element(by=By.XPATH, value='//*[@id="home"]/div[1]/div/div/div[2]/button')
         accept_cookies_button.click()
 
     def get_driver(self):
@@ -78,5 +78,6 @@ if __name__ == "__main__":
     wn = WebNavigator()
     wn.open_protein_page()
     time.sleep(3)
+    wn.driver.quit()
     
 

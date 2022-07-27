@@ -6,31 +6,45 @@ from web_navigator import WebNavigator
 
 class Scraper:
 
-    def __init__(self, web_navigator: WebNavigator):
+    def __init__(self, web_navigator: WebNavigator) -> None:
         
         self.web_navigator = web_navigator
-        self.products = self.web_navigator.get_driver().find_elements(By.CLASS_NAME, "athenaProductBlock")
-
-    def scrape_name(self):
-
-        name_list = []
-
-        for product in self.products:
-            name = product.find_element(By.CLASS_NAME, "athenaProductBlock_productName").text
-            name_list.append(name)
-
-        return name_list
-    
-    def scrape_links(self):
+        self.products: list = self.web_navigator.get_driver().find_elements(By.CLASS_NAME, "athenaProductBlock")
         
-        link_list = []
+        time.sleep(1)
+        self.scrape_links()
+        self.scrape_name()
+        self.scrape_price()
+        self.scrape_number_of_reviews() #problem to fix, not all products have reviews
 
-        for product in self.products:
-            a_tag = product.find_element(by=By.TAG_NAME, value='a')
-            link = a_tag.get_attribute('href')
-            link_list.append(link)
+    def scrape_name(self) -> list:
 
-        return link_list
+        name_list: list = []
+
+        try:
+            for product in self.products:
+                name: str = product.find_element(By.CLASS_NAME, "athenaProductBlock_productName").text
+                name_list.append(name)
+
+            return name_list
+
+        except:
+            print("Not all products have a name")
+    
+    def scrape_links(self) -> list:
+        
+        link_list: list = []
+
+        try:
+            for product in self.products:
+                a_tag = product.find_element(by=By.TAG_NAME, value='a')
+                link: str = a_tag.get_attribute('href')
+                link_list.append(link)
+
+            return link_list
+
+        except:
+            print("Not all products have a webpage")
 
 
     '''
@@ -54,43 +68,54 @@ class Scraper:
     '''
 
 
-    def scrape_price(self):
+    def scrape_price(self) -> list:
         
-        price_list = []
+        price_list: list = []
 
-        for product in self.products:
-            price = product.find_element(By.CLASS_NAME, "athenaProductBlock_priceBlock").text
-            price_list.append(price)
+        try:
+            for product in self.products:
+                price: str = product.find_element(By.CLASS_NAME, "athenaProductBlock_priceBlock").text
+                price_list.append(price)
 
-        return price_list
+            return price_list
+
+        except:
+            print("Not all products have a price")
 
 
-    def scrape_number_of_reviews(self):
+    def scrape_number_of_reviews(self) -> list:
 
-        review_list = []
+        review_list: list = []
 
-        for product in self.products:
-            number_of_reviews = product.find_element(By.CLASS_NAME, "athenaProductBlock_reviewCount").text
-            review_list.append(number_of_reviews)
+        try:
+            for product in self.products:
+                number_of_reviews: str = product.find_element(By.CLASS_NAME, "athenaProductBlock_reviewCount").text
+                review_list.append(number_of_reviews)
 
-        return review_list
+            return review_list
 
-    def scrape_reviews(self):
+        except:
+            print("Not all products have reviews")
 
-        rating_list = []
+    def scrape_reviews(self) -> list:
 
-        for product in self.products:
-            ratings = product.find_element(By.CLASS_NAME, "productBlock_ratingStarsContainer")
-            rating_list.append(ratings)
+        rating_list: list = []
 
-        return rating_list
+        try:
+            for product in self.products:
+                ratings: str = product.find_element(By.CLASS_NAME, "productBlock_ratingStarsContainer")
+                rating_list.append(ratings)
+
+            return rating_list
+
+        except:
+            print("Not all products have reviews")
 
 if __name__ == "__main__":
     web_navigator = WebNavigator()
-    web_navigator.open_protein_page() # For specific page
+    web_navigator.open_clothing_page() # For specific page
 
     scrape = Scraper(web_navigator)
-    print(scrape.scrape_name()) # Scrapes specified information
 
     web_navigator.driver.quit()
 
