@@ -3,6 +3,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import time
 from web_navigator import WebNavigator
+import urllib.request
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 class Scraper:
 
@@ -16,6 +19,7 @@ class Scraper:
         self.scrape_links()
         self.scrape_price()
         self.scrape_number_of_reviews() 
+        self.download_images()
 
         time.sleep(1)
         self.web_navigator.driver.quit()
@@ -130,6 +134,35 @@ class Scraper:
 
         except:
             print("Not all products have reviews")
+
+    
+    def extract_image_links(self, webpage):
+        pass
+
+    def get_image_source(self):
+        
+        src_list = []
+
+        for product in self.products:
+            try:
+                time.sleep(0.5)
+                src = product.find_element(by=By.XPATH, value='//img[@class="athenaProductBlock_image  athenaProductBlock_image_rollover "]').get_attribute('src')
+                src_list.append(src)
+
+            except:
+                pass
+
+        print(src_list)
+        return src_list
+    
+
+    def download_images(self):
+        try:
+            for source in self.get_image_source():
+                urllib.request.urlretrieve(source)
+
+        except:
+            print("fail")
 
 if __name__ == "__main__":
     web_navigator = WebNavigator()
