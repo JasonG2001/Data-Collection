@@ -51,21 +51,23 @@ class Scraper:
 
         self.driver.get(button_link) # enter 1 button
 
-        #product_container = self.driver.find_element(By.CLASS_NAME, 'productListProducts') 
-        products = self.driver.find_elements(by=By.TAG_NAME, value='a') # get all products in the button
+        try:
+            product_container = self.driver.find_element(By.CLASS_NAME, 'productListProducts') 
+            products = product_container.find_elements(by=By.TAG_NAME, value='a') # get all products in the button
 
-        product_links: list[str] = [] 
+            product_links: list[str] = [] 
 
-        for product in products:
-            try:
+            for product in products:
+                
                 product_link: str = product.get_attribute('href') # get link of each product in the 1 button
 
                 product_links.append(product_link)
 
-            except:
-                pass
-        
-        return product_links
+            return product_links
+
+        except:
+            return []
+            
 
     def scrape_all_product_links(self):
         for product_link in self.get_all_product_links():
