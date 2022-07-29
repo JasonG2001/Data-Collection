@@ -1,6 +1,7 @@
+from numpy import number
 from selenium import webdriver 
 from selenium.webdriver.common.by import By
-import time
+import urllib.request
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -12,24 +13,15 @@ class Scraper:
         self.driver.get("https://www.myprotein.com/")
         self.accept_cookies_and_exit_signup()
 
-        self.get_all_product_links()
-        #self.scrape_all_product_links()
+        #self.get_all_product_links()
+        self.scrape_all_product_links()
         
         self.driver.quit()
 
     def accept_cookies_and_exit_signup(self) -> None:
 
-        #WAIT_TIME: int = 2
-        #self.driver.implicitly_wait(WAIT_TIME)
-
         WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[4]/div/div[2]/button'))).click()
         WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[1]/div/div/div[2]/button'))).click()
-
-        #exit_signup_button = self.driver.find_element(by=By.XPATH, value='//*[@id="home"]/div[4]/div/div[2]/button')
-        #exit_signup_button.click()
-
-        #accept_cookies_button = self.driver.find_element(by=By.XPATH, value='//*[@id="home"]/div[1]/div/div/div[2]/button')
-        #accept_cookies_button.click()
 
 
     def get_button_links(self) -> list[str]:
@@ -55,7 +47,7 @@ class Scraper:
 
         return all_product_links
 
-    def get_product_links(self, button_link):
+    def get_product_links(self, button_link): # For each button
 
         self.driver.get(button_link) # enter 1 button
 
@@ -77,45 +69,69 @@ class Scraper:
 
     def scrape_all_product_links(self):
         for product_link in self.get_all_product_links():
-            self.scrape_product_link(product_link)
+            self.scrape_product_links(product_link)
 
 
-    def scrape_product_link(self, product_link):
+    def scrape_product_links(self, product_link):
         
         self.driver.get(product_link)
-
-        try:
-            name: str = self.driver.find_element(by=By.XPATH, value='//div[@class=productName]').text
-            print(name)
-
-        except:
-            pass
-        
-        try:
-            price: str = self.driver.find_element(By.CLASS_NAME, "productPrice").text
-            print(price)
-
-        except:
-            pass
-
-        try:
-            number_of_reviews: str = self.driver.find_element(By.CLASS_NAME, "productReviewStars").text
-            print(number_of_reviews)
-        
-        except:
-            pass
-
-        return {
-
-            "name": name,
-            "price": price,
-            "number_of_reviews": number_of_reviews
+       
+        dict = {
 
         }
 
-        #go to
-        #scrape
+        try:
+            name: str = self.driver.find_element(By.CLASS_NAME,"productName_title").text
+            dict["Name"] = str(name)
+
+        except:
+            dict["Name"] = None
+            pass
+
+        try:
+            description: str = self.driver.find_element(By.CLASS_NAME,"productDescription_synopsisContent").text
+            dict["Description"] = str(description)
+
+        except:
+            dict["Description"] = None
+            pass
         
+        try:
+            price: str = self.driver.find_element(By.CLASS_NAME, "productPrice_price  ").text
+            dict["Price"] = str(price)
+
+        except:
+            dict["Price"] = None
+            pass
+
+        try:
+            number_of_stars: str = self.driver.find_element(By.CLASS_NAME, "athenaProductReviews_aggregateRatingValue").text
+            dict["Number of stars"] = str(number_of_stars)
+
+        except:
+            dict["Number of stars"] = None
+            pass
+
+        try:
+            number_of_reviews: str = self.driver.find_element(By.CLASS_NAME, "productReviewStars_numberOfReviews").text
+            dict["Number_of_reviews"] = str(number_of_reviews)
+        
+        except:
+            dict["Number_of_reviews"] = None
+            pass
+
+        try:
+            src = self.driver.find_element(by=By.XPATH, value='//img[@class="athenaProductImageCarousel_image"]').get_attribute('src')
+            dict["Source of image"] = src
+
+            urllib.request.urlretrieve(src)
+
+        except:
+            dict["Source of image"] = None
+            pass
+
+        print(dict)
+        return dict
 
 
 if __name__ == "__main__":
