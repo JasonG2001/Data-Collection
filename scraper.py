@@ -65,9 +65,21 @@ class Scraper:
 
             return product_links
 
-        except:
-            return []
-            
+        except: # For the vitamins and vegan page
+            product_container = self.driver.find_element(By.CLASS_NAME, 'sectionPeek_grid')
+            products = product_container.find_elements(by=By.TAG_NAME, value='a')
+
+            product_links: list[str] = []
+
+            for product in products:
+
+                product_link: str = product.get_attribute('href')
+
+                product_links.append(product_link)
+
+            print(product_links)
+            return product_links
+
 
     def scrape_all_product_links(self):
         for product_link in self.get_all_product_links():
@@ -90,7 +102,7 @@ class Scraper:
             dict["Name"] = None
             pass
 
-        try:
+        try: # Needs fixing
             description: str = self.driver.find_element(By.CLASS_NAME,"productDescription_synopsisContent").text
             dict["Description"] = str(description)
 
