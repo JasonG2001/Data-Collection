@@ -13,7 +13,6 @@ class Scraper:
         self.driver.get("https://www.myprotein.com/")
         self.accept_cookies_and_exit_signup()
 
-        #self.get_all_product_links()
         self.scrape_all_product_links()
         
         self.driver.quit()
@@ -65,7 +64,7 @@ class Scraper:
 
             return product_links
 
-        except: # For the vitamins and vegan page
+        except: # For vitamins and vegan page
             product_container = self.driver.find_element(By.CLASS_NAME, 'sectionPeek_grid')
             products = product_container.find_elements(by=By.TAG_NAME, value='a')
 
@@ -77,7 +76,6 @@ class Scraper:
 
                 product_links.append(product_link)
 
-            print(product_links)
             return product_links
 
 
@@ -94,6 +92,13 @@ class Scraper:
 
         }
 
+        try: # Considering different ID
+            dict["Friendly ID"] = product_link
+
+        except:
+            dict["Friendly ID"] = None
+            pass
+
         try:
             name: str = self.driver.find_element(By.CLASS_NAME,"productName_title").text
             dict["Name"] = str(name)
@@ -102,8 +107,8 @@ class Scraper:
             dict["Name"] = None
             pass
 
-        try: # Needs fixing
-            description: str = self.driver.find_element(By.CLASS_NAME,"productDescription_synopsisContent").text
+        try: # Needs fixing, try fails
+            description: str = self.driver.find_element(By.CLASS_NAME, "productDescription_synopsisContent").text
             dict["Description"] = str(description)
 
         except:
