@@ -1,9 +1,9 @@
-from numpy import number
 from selenium import webdriver 
 from selenium.webdriver.common.by import By
 import urllib.request
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import uuid
 
 class Scraper:
 
@@ -97,6 +97,12 @@ class Scraper:
 
         except:
             dict["Friendly ID"] = None
+            pass
+
+        try:
+            dict["UUID"]: str = str(uuid.uuid4())
+            
+        except:
             pass
 
         try:
