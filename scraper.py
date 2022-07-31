@@ -4,6 +4,8 @@ import urllib.request
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import uuid
+import os
+import json
 
 class Scraper:
 
@@ -82,6 +84,7 @@ class Scraper:
     def scrape_all_product_links(self):
         for product_link in self.get_all_product_links():
             self.scrape_product_links(product_link)
+            
 
 
     def scrape_product_links(self, product_link):
@@ -93,7 +96,8 @@ class Scraper:
         }
 
         try: # Considering different ID
-            dict["Friendly ID"] = product_link
+            friendly_id = product_link
+            dict["Friendly ID"] = friendly_id
 
         except:
             dict["Friendly ID"] = None
@@ -157,6 +161,23 @@ class Scraper:
 
         print(dict)
         return dict
+
+    
+    def store_file_locally(self, directory_name, json_name, data):
+        #self.scrape_product_links(friendly_id)
+        PATH = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
+        os.chdir(PATH)
+        os.makedirs(directory_name)
+
+        with open(json_name, "w"):
+            json.dump(data)
+
+        pass
+
+    def store_all_files_locally(self):
+        self.scrape_all_product_links()
+        
+        pass
 
 
 if __name__ == "__main__":
