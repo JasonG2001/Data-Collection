@@ -16,7 +16,7 @@ class Scraper:
         self.accept_cookies_and_exit_signup()
 
         self.scrape_all_product_links()
-        
+
         self.driver.quit()
 
     def accept_cookies_and_exit_signup(self) -> None:
@@ -52,33 +52,41 @@ class Scraper:
 
         self.driver.get(button_link) # enter 1 button
 
-        try:
-            product_container = self.driver.find_element(By.CLASS_NAME, 'productListProducts') 
-            products = product_container.find_elements(by=By.TAG_NAME, value='a') # get all products in the button
+        try: #try is always run even if 'productListProducts_product ' is not found, if statement added for this
+            products: list[str] = self.driver.find_elements(By.CLASS_NAME, 'productListProducts_product ') 
 
             product_links: list[str] = [] 
 
             for product in products:
                 
-                product_link: str = product.get_attribute('href') # get link of each product in the 1 button
-
+                product_link: str = product.find_element(by=By.TAG_NAME, value='a').get_attribute('href') # get link of each product in the 1 button
+            
                 product_links.append(product_link)
 
+            if product_links[0] == 0:
+                raise Exception
+
+            print(len(product_links))
+            print(product_links)
             return product_links
 
+    
         except: # For vitamins and vegan page
-            product_container = self.driver.find_element(By.CLASS_NAME, 'sectionPeek_grid')
-            products = product_container.find_elements(by=By.TAG_NAME, value='a')
+            
+            products: list[str] = self.driver.find_elements(By.CLASS_NAME, 'sectionPeek_item')
 
             product_links: list[str] = []
 
             for product in products:
 
-                product_link: str = product.get_attribute('href')
+                product_link: str = product.find_element(by=By.TAG_NAME, value='a').get_attribute('href')
 
                 product_links.append(product_link)
+            
+            print(len(product_links))
+            print(product_links)
+            return product_links 
 
-            return product_links
 
 
     def scrape_all_product_links(self):
