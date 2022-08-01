@@ -95,7 +95,6 @@ class Scraper:
             dictionary: dict[str] = self.scrape_product_links(product_link)
             dictionaries.append(dictionary)
 
-        print(dictionaries)
         return dictionaries
             
 
@@ -166,8 +165,6 @@ class Scraper:
             src: str = self.driver.find_element(by=By.XPATH, value='//img[@class="athenaProductImageCarousel_image"]').get_attribute('src')
             dict["Source of image"] = src
 
-            urllib.request.urlretrieve(src)
-
         except:
             dict["Source of image"] = None
             pass
@@ -175,7 +172,7 @@ class Scraper:
         return dict
 
     
-    def store_file_locally(self, directory_name, json_name, data):
+    def store_file_locally(self, directory_name, json_name, data, image_source):
         
         try: 
 
@@ -187,9 +184,9 @@ class Scraper:
 
             print(f"File named {directory_name} already exists.")
 
+        os.chdir(directory_name)
+        
         try:
-            
-            os.chdir(directory_name)
 
             with open(json_name, "w") as json_file:
                 json.dump(data, json_file, indent=4)
@@ -198,12 +195,20 @@ class Scraper:
 
             print("JSON file already exists")
 
+        try: #save images
+            full_path: str = directory_name + ".jpg"
+            urllib.request.urlretrieve(image_source, full_path)
+
+        except FileExistsError:
+
+            print("This .jpg already exists")
 
 
     def store_all_files_locally(self):
         for dictionary in self.scrape_all_product_links():
             directory_name = dictionary["Name"]
-            self.store_file_locally(directory_name, "data.json", dictionary)
+            image_source = dictionary["Source of image"]
+            self.store_file_locally(directory_name, "data.json", dictionary, image_source)
 
 
 if __name__ == "__main__":
