@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 import urllib.request
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import time
 import uuid
 import os
 import json
@@ -66,8 +67,6 @@ class Scraper:
             if product_links[0] == 0:
                 raise Exception
 
-            print(len(product_links))
-            print(product_links)
             return product_links
 
     
@@ -83,15 +82,20 @@ class Scraper:
 
                 product_links.append(product_link)
             
-            print(len(product_links))
-            print(product_links)
             return product_links 
 
 
 
     def scrape_all_product_links(self):
+
+        dictionaries = []
+
         for product_link in self.get_all_product_links():
-            self.scrape_product_links(product_link)
+            dictionary: dict[str] = self.scrape_product_links(product_link)
+            dictionaries.append(dictionary)
+
+        print(dictionaries)
+        return dictionaries
             
 
 
@@ -104,7 +108,7 @@ class Scraper:
         }
 
         try: # Considering different ID
-            friendly_id = product_link
+            friendly_id: str = product_link
             dict["Friendly ID"] = friendly_id
 
         except:
@@ -173,9 +177,12 @@ class Scraper:
     
     def store_file_locally(self, directory_name, json_name, data):
         #self.scrape_product_links(friendly_id)
-        PATH = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
-        os.chdir(PATH)
+        PATH_FOR_DIRETORY: str = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
+        os.chdir(PATH_FOR_DIRETORY)
         os.makedirs(directory_name)
+
+        PATH_FOR_JSON: str = fr"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data\{directory_name}" # ?
+        os.chdir(PATH_FOR_JSON)
 
         with open(json_name, "w"):
             json.dump(data)
@@ -183,10 +190,12 @@ class Scraper:
         pass
 
     def store_all_files_locally(self):
-        self.scrape_all_product_links()
+        for dictionary in self.scrape_all_product_links():
+            self.store_file_locally(dictionary["Friendy ID"], "data.json", dictionary)
         
         pass
 
 
 if __name__ == "__main__":
     scraper = Scraper()
+    print(f"Scraping has taken {time.time()} s")
