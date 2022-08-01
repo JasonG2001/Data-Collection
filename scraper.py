@@ -16,7 +16,8 @@ class Scraper:
         self.driver.get("https://www.myprotein.com/")
         self.accept_cookies_and_exit_signup()
 
-        self.scrape_all_product_links()
+        #self.scrape_all_product_links()
+        self.store_all_files_locally()
 
         self.driver.quit()
 
@@ -37,7 +38,7 @@ class Scraper:
             button_link: str = button.get_attribute('href')
 
             button_links.append(button_link)
-        
+            break
         return button_links
 
     def get_all_product_links(self):
@@ -162,7 +163,7 @@ class Scraper:
             pass
 
         try:
-            src = self.driver.find_element(by=By.XPATH, value='//img[@class="athenaProductImageCarousel_image"]').get_attribute('src')
+            src: str = self.driver.find_element(by=By.XPATH, value='//img[@class="athenaProductImageCarousel_image"]').get_attribute('src')
             dict["Source of image"] = src
 
             urllib.request.urlretrieve(src)
@@ -171,29 +172,38 @@ class Scraper:
             dict["Source of image"] = None
             pass
 
-        print(dict)
         return dict
 
     
     def store_file_locally(self, directory_name, json_name, data):
-        #self.scrape_product_links(friendly_id)
-        PATH_FOR_DIRETORY: str = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
-        os.chdir(PATH_FOR_DIRETORY)
-        os.makedirs(directory_name)
+        
+        try: 
 
-        PATH_FOR_JSON: str = fr"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data\{directory_name}" # ?
-        os.chdir(PATH_FOR_JSON)
+            PATH_FOR_DIRECTORY: str = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
+            os.chdir(PATH_FOR_DIRECTORY)
+            os.makedirs(directory_name)
 
-        with open(json_name, "w"):
-            json.dump(data)
+        except FileExistsError:
 
-        pass
+            print(f"File named {directory_name} already exists.")
+
+        try:
+            
+            os.chdir(directory_name)
+
+            with open(json_name, "w") as json_file:
+                json.dump(data, json_file, indent=4)
+
+        except FileExistsError:
+
+            print("JSON file already exists")
+
+
 
     def store_all_files_locally(self):
         for dictionary in self.scrape_all_product_links():
-            self.store_file_locally(dictionary["Friendy ID"], "data.json", dictionary)
-        
-        pass
+            directory_name = dictionary["Name"]
+            self.store_file_locally(directory_name, "data.json", dictionary)
 
 
 if __name__ == "__main__":
