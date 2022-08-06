@@ -22,12 +22,14 @@ class Scraper:
         # self.scrape_all_product_links()
         # self.store_all_files_locally()
 
+        # self.driver.quit()
+
     def accept_cookies_and_exit_signup(self) -> None:
 
         """Clicks 'accept cookies' button and exits the sign up button
         """
 
-        WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[4]/div/div[2]/button'))).click()
+        WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[3]/div/div[2]/button'))).click()
         WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[1]/div/div/div[2]/button'))).click()
 
 
@@ -50,7 +52,8 @@ class Scraper:
             button_link: str = button.get_attribute('href')
 
             button_links.append(button_link)
-            
+            # break
+
         return button_links
 
     def get_all_product_links(self) -> list[str]:
@@ -279,5 +282,5 @@ class Scraper:
 
 if __name__ == "__main__":
     scraper = Scraper()
+
     print(f"Scraping has taken {time.time()} s")
-    webdriver.quit()
