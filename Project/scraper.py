@@ -7,6 +7,7 @@ import time
 import uuid
 import os
 import json
+import boto3
 
 class Scraper:
 
@@ -19,17 +20,20 @@ class Scraper:
         self.driver.get("https://www.myprotein.com/")
         self.accept_cookies_and_exit_signup()
 
-        # self.scrape_all_product_links()
-        # self.store_all_files_locally()
+        '''
+        all_product_info = self.scrape_all_product_links()
+        self.store_all_files_locally(all_product_info)
+        self.store_all_to_aws()
+        '''
 
-        # self.driver.quit()
+        self.driver.quit()
 
     def accept_cookies_and_exit_signup(self) -> None:
 
         """Clicks 'accept cookies' button and exits the sign up button
         """
-
-        WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[3]/div/div[2]/button'))).click()
+        # //*[@id="home"]/div[3]/div/div[2]/button
+        WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[4]/div/div[2]/button'))).click()
         WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[1]/div/div/div[2]/button'))).click()
 
 
@@ -55,6 +59,18 @@ class Scraper:
             # break
 
         return button_links
+    '''
+    def get_next_pages(self):
+        
+        pages_links = []
+
+        while disabled != "disabled":
+            WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.CLASS_NAME,'responsivePaginationNavigationButton paginationNavigationButtonNext'))).click()
+            link = 
+            pages_links.append(link)
+
+        return pages_links
+    '''
 
     def get_all_product_links(self) -> list[str]:
 
@@ -90,10 +106,11 @@ class Scraper:
         """
 
         self.driver.get(button_link)
-        try: # try is always run even if 'productListProducts_product ' is not found, 'if' statement added for this
-            products: list[str] = self.driver.find_elements(By.CLASS_NAME, 'productListProducts_product ') 
 
-            product_links: list[str] = [] 
+        product_links: list[str] = [] 
+
+        try: # try is always run even if 'productListProducts_product ' is not found, 'if' statement added for this
+            products = self.driver.find_elements(By.CLASS_NAME, 'productListProducts_product ') 
 
             for product in products:
                 
@@ -109,13 +126,11 @@ class Scraper:
     
         except: # For vitamins and vegan page
             
-            products: list[str] = self.driver.find_elements(By.CLASS_NAME, 'sectionPeek_item')
-
-            product_links: list[str] = []
+            products = self.driver.find_elements(By.CLASS_NAME, 'sectionPeek_item')
 
             for product in products:
 
-                product_link: str = product.find_element(by=By.TAG_NAME, value='a').get_attribute('href')
+                product_link = product.find_element(by=By.TAG_NAME, value='a').get_attribute('href')
 
                 product_links.append(product_link)
             
@@ -191,42 +206,42 @@ class Scraper:
             product_info["Name"] = name
 
         except:
-            product_info["Name"] = None
+            product_info["Name"] = "None"
 
         try: 
             description: str = self.driver.find_element(By.CLASS_NAME, "productDescription_synopsisContent").text
             product_info["Description"] = description
 
         except:
-            product_info["Description"] = None
+            product_info["Description"] = "None"
         
         try:
             price: str = self.driver.find_element(By.CLASS_NAME, "productPrice_price  ").text
             product_info["Price"] = price
 
         except:
-            product_info["Price"] = None
+            product_info["Price"] = "None"
 
         try:
             number_of_stars: str = self.driver.find_element(By.CLASS_NAME, "athenaProductReviews_aggregateRatingValue").text
             product_info["Number of stars"] = number_of_stars
 
         except:
-            product_info["Number of stars"] = None
+            product_info["Number of stars"] = "None"
 
         try:
             number_of_reviews: str = self.driver.find_element(By.CLASS_NAME, "productReviewStars_numberOfReviews").text
             product_info["Number_of_reviews"] = number_of_reviews
         
         except:
-            product_info["Number_of_reviews"] = None
+            product_info["Number_of_reviews"] = "None"
 
         try:
             src: str = self.driver.find_element(by=By.XPATH, value='//img[@class="athenaProductImageCarousel_image"]').get_attribute('src')
             product_info["Source of image"] = src
 
         except:
-            product_info["Source of image"] = None
+            product_info["Source of image"] = "None"
         
         return product_info
 
@@ -253,31 +268,55 @@ class Scraper:
 
             PATH_FOR_DIRECTORY: str = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
             os.chdir(PATH_FOR_DIRECTORY)
-            os.makedirs(directory_name)
+
+            modified_directory_name = directory_name.replace("/", " - ")
+            os.makedirs(modified_directory_name)
 
         except FileExistsError:
 
-            print(f"File named {directory_name} already exists.")
+            print(f"File named {modified_directory_name} already exists.")
 
-        os.chdir(directory_name)
+        os.chdir(modified_directory_name)
+
         
         with open(json_name, "w") as json_file:
             json.dump(data, json_file, indent=4)
 
         try: # download images
-            full_path: str = directory_name + ".jpg"
+            full_path: str = modified_directory_name + ".jpg"
             urllib.request.urlretrieve(image_source, full_path)
 
         except:
 
-            print(f"No image available for {directory_name}")
+            print(f"No image available for {modified_directory_name}")
+    
 
-
-    def store_all_files_locally(self) -> None:
+    def store_all_files_locally(self, all_product_info: list[dict[str,str]]) -> None:
         """Stores the information in the form of a json file for every single product in their own directory
+
+        Parameters
+        ----------
+        all_product_info: list
+            list of dictionary of product information abtained from the scrape all product method
         """
-        for product_info in self.scrape_all_product_links():
+        for product_info in all_product_info:
             self.store_file_locally(product_info["Name"], "data.json", product_info, product_info["Source of image"])
+
+    def store_all_to_aws(self) -> None:
+
+        BUCKET = "scraper-information"
+        PATH = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
+
+        for product_directory in os.listdir(PATH):
+            
+            self.store_to_aws(product_directory, BUCKET)
+
+    def store_to_aws(self, directory_name: str, bucket_name: str) -> None:
+        
+        s3 = boto3.resource('s3')
+
+        s3.meta.client.upload_file(fr'C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data\{directory_name}\data.json', bucket_name, f'data file - {directory_name}')
+        s3.meta.client.upload_file(fr'C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data\{directory_name}\{directory_name}.jpg', bucket_name, f'image file - {directory_name}')
 
 
 if __name__ == "__main__":
