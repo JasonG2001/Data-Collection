@@ -8,6 +8,8 @@ import uuid
 import os
 import json
 import boto3
+import psycopg2
+
 
 class Scraper:
 
@@ -20,13 +22,17 @@ class Scraper:
         self.driver.get("https://www.myprotein.com/")
         self.accept_cookies_and_exit_signup()
 
+        self.HOST = "database-1.cqav9sfxcwg5.eu-west-2.rds.amazonaws.com"
+        self.USER = "postgres"
+        self.PASSWORD = "Jguan2001"
+        self.DATABASE = "postgres"
+        self.PORT = 5432
         '''
         all_product_info = self.scrape_all_product_links()
+        
         self.store_all_files_locally(all_product_info)
         self.store_all_to_aws()
         '''
-
-        self.driver.quit()
 
     def accept_cookies_and_exit_signup(self) -> None:
 
@@ -56,7 +62,7 @@ class Scraper:
             button_link: str = button.get_attribute('href')
 
             button_links.append(button_link)
-            # break
+            break
 
         return button_links
     '''
@@ -269,7 +275,7 @@ class Scraper:
             PATH_FOR_DIRECTORY: str = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
             os.chdir(PATH_FOR_DIRECTORY)
 
-            modified_directory_name = directory_name.replace("/", " - ")
+            modified_directory_name = directory_name.replace("/", " - ") # Directory name cannot contain a '/'
             os.makedirs(modified_directory_name)
 
         except FileExistsError:
@@ -318,8 +324,43 @@ class Scraper:
         s3.meta.client.upload_file(fr'C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data\{directory_name}\data.json', bucket_name, f'data file - {directory_name}')
         s3.meta.client.upload_file(fr'C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data\{directory_name}\{directory_name}.jpg', bucket_name, f'image file - {directory_name}')
 
+    def quit_browser(self):
+        
+        self.driver.quit()
+    
+    def upload_to_postgres(self):
+        
+            with psycopg2.connect(host = self.HOST, user = self.USER, password = self.PASSWORD, dbname = self.DATABASE, port = self.PORT) as conn:
+                with conn.cursor() as cur:
+                    try:
+                        cur.execute("CREATE TABLE product_info (name VARCHAR UNIQUE, link VARCHAR, price VARCHAR, number_of_stars INT);")
+                    except:
+                        path = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
+                        os.chdir(path)
+
+                        for product_directory in os.listdir(path):
+
+                            os.chdir(product_directory)
+
+                            with open("data.json") as f:
+                                data = json.load(f)
+
+                            with psycopg2.connect(host = self.HOST, user = self.USER, password = self.PASSWORD, dbname = self.DATABASE, port = self.PORT) as conn:
+                                with conn.cursor() as cur:
+                                    Modified_name = data["Name"].replace("'","/")
+                                    cur.execute(f"INSERT INTO product_info VALUES ('{Modified_name}', '{data['Friendly ID']}', 'Aaf', '12')")
+                    
+                            os.chdir(path)
+
+
+
+
+
 
 if __name__ == "__main__":
     scraper = Scraper()
+    scraper.upload_to_postgres()
+
+    scraper.quit_browser()
 
     print(f"Scraping has taken {time.time()} s")
