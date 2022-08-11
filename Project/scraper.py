@@ -10,7 +10,6 @@ import json
 import boto3
 import psycopg2
 
-
 class Scraper:
 
     """Scrapes the information off every page in the website and stores this information locally
@@ -223,6 +222,7 @@ class Scraper:
         
         try:
             price: str = self.driver.find_element(By.CLASS_NAME, "productPrice_price  ").text
+
             product_info["Price"] = price
 
         except:
@@ -324,16 +324,17 @@ class Scraper:
         s3.meta.client.upload_file(fr'C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data\{directory_name}\data.json', bucket_name, f'data file - {directory_name}')
         s3.meta.client.upload_file(fr'C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data\{directory_name}\{directory_name}.jpg', bucket_name, f'image file - {directory_name}')
 
-    def quit_browser(self):
+    def quit_browser(self) -> None:
         
         self.driver.quit()
     
-    def upload_to_postgres(self):
+    def upload_to_postgres(self) -> None:
         
             with psycopg2.connect(host = self.HOST, user = self.USER, password = self.PASSWORD, dbname = self.DATABASE, port = self.PORT) as conn:
                 with conn.cursor() as cur:
                     try:
-                        cur.execute("CREATE TABLE product_info (name VARCHAR UNIQUE, link VARCHAR, price VARCHAR, number_of_stars INT);")
+                        cur.execute("CREATE TABLE product_info (name VARCHAR UNIQUE, link VARCHAR, price FLOAT, number_of_stars FLOAT);")
+                    
                     except:
                         path = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
                         os.chdir(path)
@@ -347,12 +348,23 @@ class Scraper:
 
                             with psycopg2.connect(host = self.HOST, user = self.USER, password = self.PASSWORD, dbname = self.DATABASE, port = self.PORT) as conn:
                                 with conn.cursor() as cur:
-                                    Modified_name = data["Name"].replace("'","/")
-                                    cur.execute(f"INSERT INTO product_info VALUES ('{Modified_name}', '{data['Friendly ID']}', 'Aaf', '12')")
+                                    
+                                    modified_name: str = data["Name"].replace("'","/")
+                                    link: str = data["Friendly ID"]
+                                    
+                                    try:
+                                        price = float(data["Price"][1:])
+                                    except ValueError:
+                                        price = 0
+                                    
+                                    try:
+                                        average_stars = float(data["Number of stars"])
+                                    except ValueError:
+                                        average_stars = 0
+
+                                    cur.execute(f"INSERT INTO product_info VALUES ('{modified_name}', '{link}', '{price}', {average_stars})")
                     
                             os.chdir(path)
-
-
 
 
 
