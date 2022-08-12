@@ -21,11 +21,6 @@ class Scraper:
         self.driver.get("https://www.myprotein.com/")
         self.accept_cookies_and_exit_signup()
 
-        self.HOST = "database-1.cqav9sfxcwg5.eu-west-2.rds.amazonaws.com"
-        self.USER = "postgres"
-        self.PASSWORD = "Jguan2001"
-        self.DATABASE = "postgres"
-        self.PORT = 5432
         '''
         all_product_info = self.scrape_all_product_links()
         
@@ -298,6 +293,7 @@ class Scraper:
     
 
     def store_all_files_locally(self, all_product_info: list[dict[str,str]]) -> None:
+
         """Stores the information in the form of a json file for every single product in their own directory
 
         Parameters
@@ -310,6 +306,9 @@ class Scraper:
 
     def store_all_to_aws(self) -> None:
 
+        """Stores all the json and image files in the local directory onto the aws cloud
+        """
+
         BUCKET = "scraper-information"
         PATH = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
 
@@ -318,6 +317,15 @@ class Scraper:
             self.store_to_aws(product_directory, BUCKET)
 
     def store_to_aws(self, directory_name: str, bucket_name: str) -> None:
+
+        """Looks for one directory stored in the local files and uploads the data file with the image file onto the aws cloud
+            
+        Parameters
+        ----------
+        directory_name: string
+            give a name of the directory to enter so that the data inside that directory is accessible
+        bucket_name: string
+            give the name of the bucket on the aws server for which the local files will be stored to"""
         
         s3 = boto3.resource('s3')
 
@@ -325,53 +333,78 @@ class Scraper:
         s3.meta.client.upload_file(fr'C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data\{directory_name}\{directory_name}.jpg', bucket_name, f'image file - {directory_name}')
 
     def quit_browser(self) -> None:
+
+        """Closes the web browser"""
         
         self.driver.quit()
     
-    def upload_to_postgres(self) -> None:
+    def upload_to_postgres(self, host, user, password, dbname, port) -> None: # run once for table creation, run again to insert record
+
+        """Uploads to the postgres application linked to the amazon rds
+
+        Parameters
+        ----------
+        host: string
+            host name of the rds database
+        user: string
+            user name for the rds database
+        password: string
+            password made for the database
+        dbname: string
+            master name of the database
+        port: int
+            port number for the rds database
+        """
         
-            with psycopg2.connect(host = self.HOST, user = self.USER, password = self.PASSWORD, dbname = self.DATABASE, port = self.PORT) as conn:
-                with conn.cursor() as cur:
-                    try:
-                        cur.execute("CREATE TABLE product_info (name VARCHAR UNIQUE, link VARCHAR, price FLOAT, number_of_stars FLOAT);")
-                    
-                    except:
-                        path = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
+        with psycopg2.connect(host = host, user = user, password = password, dbname = dbname, port = port) as conn:
+            with conn.cursor() as cur:
+                try:
+                    cur.execute("CREATE TABLE product_info (name VARCHAR UNIQUE, link VARCHAR, price FLOAT, number_of_stars FLOAT);")
+                
+                except:
+                    path = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
+                    os.chdir(path)
+
+                    for product_directory in os.listdir(path):
+
+                        os.chdir(product_directory)
+
+                        with open("data.json") as f:
+                            data = json.load(f)
+
+                        with psycopg2.connect(host = host, user = user, password = password, dbname = dbname, port = port) as conn:
+                            with conn.cursor() as cur:
+                                
+                                modified_name: str = data["Name"].replace("'","/")
+                                link: str = data["Friendly ID"]
+                                
+                                try:
+                                    price = float(data["Price"][1:])
+                                except ValueError:
+                                    price = 0
+                                
+                                try:
+                                    average_stars = float(data["Number of stars"])
+                                except ValueError:
+                                    average_stars = 0
+
+                                cur.execute(f"INSERT INTO product_info VALUES ('{modified_name}', '{link}', '{price}', {average_stars})")
+                
                         os.chdir(path)
-
-                        for product_directory in os.listdir(path):
-
-                            os.chdir(product_directory)
-
-                            with open("data.json") as f:
-                                data = json.load(f)
-
-                            with psycopg2.connect(host = self.HOST, user = self.USER, password = self.PASSWORD, dbname = self.DATABASE, port = self.PORT) as conn:
-                                with conn.cursor() as cur:
-                                    
-                                    modified_name: str = data["Name"].replace("'","/")
-                                    link: str = data["Friendly ID"]
-                                    
-                                    try:
-                                        price = float(data["Price"][1:])
-                                    except ValueError:
-                                        price = 0
-                                    
-                                    try:
-                                        average_stars = float(data["Number of stars"])
-                                    except ValueError:
-                                        average_stars = 0
-
-                                    cur.execute(f"INSERT INTO product_info VALUES ('{modified_name}', '{link}', '{price}', {average_stars})")
-                    
-                            os.chdir(path)
 
 
 
 
 if __name__ == "__main__":
+
+    HOST = "database-1.cqav9sfxcwg5.eu-west-2.rds.amazonaws.com"
+    USER = "postgres"
+    PASSWORD = "Jguan2001"
+    DATABASE = "postgres"
+    PORT = 5432
+
     scraper = Scraper()
-    scraper.upload_to_postgres()
+    scraper.upload_to_postgres(HOST, USER, PASSWORD, DATABASE, PORT)
 
     scraper.quit_browser()
 
