@@ -1,3 +1,4 @@
+from xmlrpc.client import Boolean
 from selenium import webdriver 
 from selenium.webdriver.common.by import By
 import urllib.request
@@ -32,8 +33,11 @@ class Scraper:
 
         """Clicks 'accept cookies' button and exits the sign up button
         """
-        # //*[@id="home"]/div[3]/div/div[2]/button
-        WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[4]/div/div[2]/button'))).click()
+        try:
+            WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[3]/div/div[2]/button'))).click()
+        except:
+            WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[4]/div/div[2]/button'))).click()
+        
         WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[1]/div/div/div[2]/button'))).click()
 
 
@@ -56,7 +60,6 @@ class Scraper:
             button_link: str = button.get_attribute('href')
 
             button_links.append(button_link)
-            break
 
         return button_links
     '''
@@ -87,8 +90,8 @@ class Scraper:
         for button_link in self.get_button_links():
             product_links: list[str] = self.get_product_links(button_link)
             all_product_links.extend(product_links)
-
-        return all_product_links
+        
+        return list(set(all_product_links)) # set() removes any duplicate links
 
     def get_product_links(self, button_link: str) -> list[str]:
         
@@ -109,18 +112,25 @@ class Scraper:
 
         product_links: list[str] = [] 
 
-        try: # try is always run even if 'productListProducts_product ' is not found, 'if' statement added for this
+        try: 
             products = self.driver.find_elements(By.CLASS_NAME, 'productListProducts_product ') 
 
             for product in products:
-                
-                product_link: str = product.find_element(by=By.TAG_NAME, value='a').get_attribute('href') # get link of each product in the 1 button
-            
-                product_links.append(product_link)
-            
-            if product_links[0] == 0:
-                raise Exception
 
+                name: str = product.find_element(By.CLASS_NAME, 'athenaProductBlock_productName').text 
+                
+                if self.check_if_product_has_been_scraped(product) == True:
+
+                    product_link: str = product.find_element(by=By.TAG_NAME, value='a').get_attribute('href')
+                
+                    product_links.append(product_link)
+
+                else: 
+                    print(f"{name} has already been scraped")
+            
+            if product_links[0] == 0: # The products on the nutritions page is identified by a different Class name. This exception allows the products to be scraped in the except block
+                raise Exception
+            
             return product_links
 
     
@@ -130,12 +140,31 @@ class Scraper:
 
             for product in products:
 
-                product_link = product.find_element(by=By.TAG_NAME, value='a').get_attribute('href')
+                name: str = product.find_element(By.CLASS_NAME, 'athenaProductBlock_productName').text 
 
-                product_links.append(product_link)
+                if self.check_if_product_has_been_scraped(product) == True:
+
+                    product_link = product.find_element(by=By.TAG_NAME, value='a').get_attribute('href')
+
+                    product_links.append(product_link)
+
+                else:
+                    print(f"{name} has already been scraped")
             
             return product_links 
         
+    def check_if_product_has_been_scraped(self, product) -> bool:
+
+        name: str = product.find_element(By.CLASS_NAME, 'athenaProductBlock_productName').text 
+        modified_name: str = name.replace("/", " - ")
+        
+        PATH = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
+
+        if modified_name not in os.listdir(PATH):
+            return True
+
+        else:
+            return False
 
 
     def scrape_all_product_links(self) -> list[dict[str,str]]:
@@ -359,7 +388,7 @@ class Scraper:
         with psycopg2.connect(host = host, user = user, password = password, dbname = dbname, port = port) as conn:
             with conn.cursor() as cur:
                 try:
-                    cur.execute("CREATE TABLE product_info (name VARCHAR UNIQUE, link VARCHAR, price FLOAT, number_of_stars FLOAT);")
+                    cur.execute("CREATE TABLE product_info (name VARCHAR UNIQUE, link VARCHAR UNIQUE, price FLOAT, number_of_stars FLOAT);")
                 
                 except:
                     path = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
@@ -404,7 +433,10 @@ if __name__ == "__main__":
     PORT = 5432
 
     scraper = Scraper()
-    scraper.upload_to_postgres(HOST, USER, PASSWORD, DATABASE, PORT)
+    
+    all_product_info = scraper.scrape_all_product_links()
+    scraper.store_all_files_locally(all_product_info)
+    # scraper.upload_to_postgres(HOST, USER, PASSWORD, DATABASE, PORT)
 
     scraper.quit_browser()
 
