@@ -61,6 +61,8 @@ class Scraper:
 
             button_links.append(button_link)
 
+            break
+
         return button_links
     '''
     def get_next_pages(self):
@@ -404,7 +406,7 @@ class Scraper:
                         with psycopg2.connect(host = host, user = user, password = password, dbname = dbname, port = port) as conn:
                             with conn.cursor() as cur:
                                 
-                                modified_name: str = data["Name"].replace("'","/")
+                                modified_name: str = data["Name"].replace("'","/") # Name can't contain apostrophe as this is the marks used for a select query
                                 link: str = data["Friendly ID"]
                                 
                                 try:
@@ -417,9 +419,22 @@ class Scraper:
                                 except ValueError:
                                     average_stars = 0
 
-                                cur.execute(f"INSERT INTO product_info VALUES ('{modified_name}', '{link}', '{price}', {average_stars})")
+                                cur.execute('SELECT * FROM product_info')
+                                list_of_records: list[tuple] = cur.fetchall()
+
+                                if self.check_if_record_exists_on_postgres(modified_name, link, price, average_stars, list_of_records) == True:
+
+                                    cur.execute(f"INSERT INTO product_info VALUES ('{modified_name}', '{link}', '{price}', {average_stars})")
+
+                                else:
+
+                                    print("This record already exists")
                 
                         os.chdir(path)
+
+    def check_if_record_exists_on_postgres(self, name: str, link: str, price: float, number_of_stars:float, list_of_records: list[tuple]):
+        if (name, link, price, number_of_stars) not in list_of_records:
+            return True
 
 
 
@@ -434,9 +449,9 @@ if __name__ == "__main__":
 
     scraper = Scraper()
     
-    all_product_info = scraper.scrape_all_product_links()
-    scraper.store_all_files_locally(all_product_info)
-    # scraper.upload_to_postgres(HOST, USER, PASSWORD, DATABASE, PORT)
+    # all_product_info = scraper.scrape_all_product_links()
+    # scraper.store_all_files_locally(all_product_info)
+    scraper.upload_to_postgres(HOST, USER, PASSWORD, DATABASE, PORT)
 
     scraper.quit_browser()
 
