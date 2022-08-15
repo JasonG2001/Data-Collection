@@ -1,20 +1,20 @@
-from xmlrpc.client import Boolean
 from selenium import webdriver 
 from selenium.webdriver.common.by import By
-import urllib.request
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import time
-import uuid
-import os
-import json
+from selenium.webdriver.support.ui import WebDriverWait
 import boto3
+import json
+import os
 import psycopg2
+import time
+import urllib.request
+import uuid
 
 class Scraper:
 
     """Scrapes the information off every page in the website and stores this information locally
     """
+
 
     def __init__(self):
 
@@ -29,16 +29,25 @@ class Scraper:
         self.store_all_to_aws()
         '''
 
+
     def accept_cookies_and_exit_signup(self) -> None:
 
         """Clicks 'accept cookies' button and exits the sign up button
         """
+
         try:
             WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[3]/div/div[2]/button'))).click()
         except:
             WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[4]/div/div[2]/button'))).click()
         
         WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[1]/div/div/div[2]/button'))).click()
+
+    
+    def quit_browser(self) -> None:
+
+        """Closes the web browser"""
+        
+        self.driver.quit()
 
 
     def get_button_links(self) -> list[str]:
@@ -77,6 +86,7 @@ class Scraper:
         return pages_links
     '''
 
+
     def get_all_product_links(self) -> list[str]:
 
         """Gets the links of all the products on the whole website
@@ -94,6 +104,7 @@ class Scraper:
             all_product_links.extend(product_links)
         
         return list(set(all_product_links)) # set() removes any duplicate links
+
 
     def get_product_links(self, button_link: str) -> list[str]:
         
@@ -144,7 +155,7 @@ class Scraper:
 
                 name: str = product.find_element(By.CLASS_NAME, 'athenaProductBlock_productName').text 
 
-                if self.check_if_product_has_been_scraped(product) == True:
+                if self.check_if_product_has_been_scraped(product):
 
                     product_link = product.find_element(by=By.TAG_NAME, value='a').get_attribute('href')
 
@@ -155,6 +166,7 @@ class Scraper:
             
             return product_links 
         
+
     def check_if_product_has_been_scraped(self, product) -> bool:
 
         name: str = product.find_element(By.CLASS_NAME, 'athenaProductBlock_productName').text 
@@ -162,11 +174,7 @@ class Scraper:
         
         PATH = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
 
-        if modified_name not in os.listdir(PATH):
-            return True
-
-        else:
-            return False
+        return modified_name not in os.listdir(PATH)
 
 
     def scrape_all_product_links(self) -> list[dict[str,str]]:
@@ -196,7 +204,6 @@ class Scraper:
 
         return list_of_product_info
             
-
 
     def scrape_product_links(self, product_link: str) -> dict[str,str]:
 
@@ -335,6 +342,7 @@ class Scraper:
         for product_info in all_product_info:
             self.store_file_locally(product_info["Name"], "data.json", product_info, product_info["Source of image"])
 
+
     def store_all_to_aws(self) -> None:
 
         """Stores all the json and image files in the local directory onto the aws cloud
@@ -346,6 +354,7 @@ class Scraper:
         for product_directory in os.listdir(PATH):
             
             self.store_to_aws(product_directory, BUCKET)
+
 
     def store_to_aws(self, directory_name: str, bucket_name: str) -> None:
 
@@ -363,15 +372,22 @@ class Scraper:
         s3.meta.client.upload_file(fr'C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data\{directory_name}\data.json', bucket_name, f'data file - {directory_name}')
         s3.meta.client.upload_file(fr'C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data\{directory_name}\{directory_name}.jpg', bucket_name, f'image file - {directory_name}')
 
-    def quit_browser(self) -> None:
+    def execute_to_postgres(self, host: str, user: str, password: str, dbname: str, port: int, sql_code: str) -> None:
 
-        """Closes the web browser"""
+         with psycopg2.connect(host = host, user = user, password = password, dbname = dbname, port = port) as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql_code)
+
+    def create_postgres_table(self, host: str, user: str, password: str, dbname: str, port: int) -> None:
         
-        self.driver.quit()
-    
-    def upload_to_postgres(self, host, user, password, dbname, port) -> None: # run once for table creation, run again to insert record
+        sql_code = "CREATE TABLE product_info (link VARCHAR PRIMARY KEY, name VARCHAR UNIQUE, price FLOAT, number_of_stars FLOAT);"
+        
+        self.execute_to_postgres(host, user, password, dbname, port, sql_code)
 
-        """Uploads to the postgres application linked to the amazon rds
+
+    def upload_record_to_postgres(self, host, user, password, dbname, port) -> None: # run once for table creation, run again to insert record
+
+        """Uploads record to the postgres application linked to the amazon rds
 
         Parameters
         ----------
@@ -387,54 +403,61 @@ class Scraper:
             port number for the rds database
         """
         
-        with psycopg2.connect(host = host, user = user, password = password, dbname = dbname, port = port) as conn:
+        PATH = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
+
+        for product_directory in os.listdir(PATH):
+
+            os.chdir(PATH)
+            os.chdir(product_directory)
+
+            with open("data.json") as f:
+                data = json.load(f)
+
+            link: str = data["Friendly ID"]
+            modified_name: str = data["Name"].replace("'","/") # Name can't contain apostrophe as this is the marks used for a select query
+            
+            try:
+                price = float(data["Price"][1:])
+            except ValueError:
+                price = 0
+            
+            try:
+                average_stars = float(data["Number of stars"])
+            except ValueError:
+                average_stars = 0
+
+            try:
+                sql_code = f"INSERT INTO product_info VALUES ('{link}', '{modified_name}', '{price}', {average_stars})"
+                self.execute_to_postgres(host, user, password, dbname, port, sql_code)
+
+            except:
+
+                list_of_records = self.get_all_records(host, user, password, dbname, port)
+
+                if self.check_if_record_is_exactly_the_same(link, modified_name, price, average_stars, list_of_records):
+                    
+                    sql_code = f"UPDATE product_info SET link = '{link}', name = '{modified_name}', price = '{price}', number_of_stars = '{average_stars}' WHERE link = '{link}';"
+                    self.execute_to_postgres(host, user, password, dbname, port, sql_code) #
+
+                else:
+
+                    print(f"The record for {modified_name} already exists")
+                
+
+
+    def get_all_records(self, host, user, password, dbname, port) -> list[tuple]:
+
+        with psycopg2.connect(host=host, user=user, password=password, dbname=dbname, port=port) as conn:
             with conn.cursor() as cur:
-                try:
-                    cur.execute("CREATE TABLE product_info (name VARCHAR UNIQUE, link VARCHAR UNIQUE, price FLOAT, number_of_stars FLOAT);")
+                sql_code = "SELECT * FROM product_info"
+                cur.execute(sql_code)
+                list_of_records: list[tuple] = cur.fetchall()
+
+        return list_of_records
                 
-                except:
-                    path = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
-                    os.chdir(path)
 
-                    for product_directory in os.listdir(path):
-
-                        os.chdir(product_directory)
-
-                        with open("data.json") as f:
-                            data = json.load(f)
-
-                        with psycopg2.connect(host = host, user = user, password = password, dbname = dbname, port = port) as conn:
-                            with conn.cursor() as cur:
-                                
-                                modified_name: str = data["Name"].replace("'","/") # Name can't contain apostrophe as this is the marks used for a select query
-                                link: str = data["Friendly ID"]
-                                
-                                try:
-                                    price = float(data["Price"][1:])
-                                except ValueError:
-                                    price = 0
-                                
-                                try:
-                                    average_stars = float(data["Number of stars"])
-                                except ValueError:
-                                    average_stars = 0
-
-                                cur.execute('SELECT * FROM product_info')
-                                list_of_records: list[tuple] = cur.fetchall()
-
-                                if self.check_if_record_exists_on_postgres(modified_name, link, price, average_stars, list_of_records) == True:
-
-                                    cur.execute(f"INSERT INTO product_info VALUES ('{modified_name}', '{link}', '{price}', {average_stars})")
-
-                                else:
-
-                                    print("This record already exists")
-                
-                        os.chdir(path)
-
-    def check_if_record_exists_on_postgres(self, name: str, link: str, price: float, number_of_stars:float, list_of_records: list[tuple]):
-        if (name, link, price, number_of_stars) not in list_of_records:
-            return True
+    def check_if_record_is_exactly_the_same(self, link: str, name: str, price: float, number_of_stars:float, list_of_records: list[tuple]) -> bool:
+        return (link, name, price, number_of_stars) not in list_of_records
 
 
 
@@ -451,7 +474,9 @@ if __name__ == "__main__":
     
     # all_product_info = scraper.scrape_all_product_links()
     # scraper.store_all_files_locally(all_product_info)
-    scraper.upload_to_postgres(HOST, USER, PASSWORD, DATABASE, PORT)
+    # scraper.upload_to_postgres(HOST, USER, PASSWORD, DATABASE, PORT)
+    # scraper.create_postgres_table(HOST, USER, PASSWORD, DATABASE, PORT)
+    scraper.upload_record_to_postgres(HOST, USER, PASSWORD, DATABASE, PORT)
 
     scraper.quit_browser()
 
