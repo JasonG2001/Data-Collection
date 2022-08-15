@@ -380,7 +380,7 @@ class Scraper:
 
     def create_postgres_table(self, host: str, user: str, password: str, dbname: str, port: int) -> None:
         
-        sql_code = "CREATE TABLE product_info (link VARCHAR PRIMARY KEY, name VARCHAR UNIQUE, price FLOAT, number_of_stars FLOAT);"
+        sql_code: str = "CREATE TABLE product_info (link VARCHAR PRIMARY KEY, name VARCHAR UNIQUE, price FLOAT, number_of_stars FLOAT);"
         
         self.execute_to_postgres(host, user, password, dbname, port, sql_code)
 
@@ -427,16 +427,16 @@ class Scraper:
                 average_stars = 0
 
             try:
-                sql_code = f"INSERT INTO product_info VALUES ('{link}', '{modified_name}', '{price}', {average_stars})"
+                sql_code: str = f"INSERT INTO product_info VALUES ('{link}', '{modified_name}', '{price}', {average_stars})"
                 self.execute_to_postgres(host, user, password, dbname, port, sql_code)
 
             except:
 
-                list_of_records = self.get_all_records(host, user, password, dbname, port)
+                list_of_records: list[tuple] = self.get_all_records(host, user, password, dbname, port)
 
                 if self.check_if_record_is_exactly_the_same(link, modified_name, price, average_stars, list_of_records):
                     
-                    sql_code = f"UPDATE product_info SET link = '{link}', name = '{modified_name}', price = '{price}', number_of_stars = '{average_stars}' WHERE link = '{link}';"
+                    sql_code: str = f"UPDATE product_info SET link = '{link}', name = '{modified_name}', price = '{price}', number_of_stars = '{average_stars}' WHERE link = '{link}';"
                     self.execute_to_postgres(host, user, password, dbname, port, sql_code) #
 
                 else:
@@ -445,11 +445,11 @@ class Scraper:
                 
 
 
-    def get_all_records(self, host, user, password, dbname, port) -> list[tuple]:
+    def get_all_records(self, host: str, user: str, password: str, dbname: str, port: int) -> list[tuple]:
 
         with psycopg2.connect(host=host, user=user, password=password, dbname=dbname, port=port) as conn:
             with conn.cursor() as cur:
-                sql_code = "SELECT * FROM product_info"
+                sql_code: str = "SELECT * FROM product_info"
                 cur.execute(sql_code)
                 list_of_records: list[tuple] = cur.fetchall()
 
