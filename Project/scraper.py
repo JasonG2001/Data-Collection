@@ -1,4 +1,5 @@
 from selenium import webdriver 
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -17,17 +18,13 @@ class Scraper:
 
 
     def __init__(self):
-
-        self.driver: webdriver = webdriver.Chrome()
+        
+        self.options = Options()
+        self.options.add_argument("--headless")
+        self.options.add_argument("--disable-gpu")
+        self.driver: webdriver = webdriver.Chrome(options=self.options)
         self.driver.get("https://www.myprotein.com/")
         self.accept_cookies_and_exit_signup()
-
-        '''
-        all_product_info = self.scrape_all_product_links()
-        
-        self.store_all_files_locally(all_product_info)
-        self.store_all_to_aws()
-        '''
 
 
     def accept_cookies_and_exit_signup(self) -> None:
@@ -366,8 +363,14 @@ class Scraper:
         PATH = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
 
         for product_directory in os.listdir(PATH):
+
+            try:
             
-            self.store_to_aws(product_directory, BUCKET)
+                self.store_to_aws(product_directory, BUCKET)
+
+            except:
+
+                print(f"{product_directory} doesn't have a data.json or image file")
 
 
     def store_to_aws(self, directory_name: str, bucket_name: str) -> None:
@@ -461,38 +464,45 @@ class Scraper:
             os.chdir(PATH)
             os.chdir(product_directory)
 
-            with open("data.json") as f:
-                data = json.load(f)
+            try:
 
-            link: str = data["Friendly ID"]
-            modified_name: str = data["Name"].replace("'","/") # Name can't contain apostrophe as this is the marks used for a select query
-            
-            try:
-                price = float(data["Price"][1:])
-            except ValueError:
-                price = 0
-            
-            try:
-                average_stars = float(data["Number of stars"])
-            except ValueError:
-                average_stars = 0
+                with open("data.json") as f:
+                    data = json.load(f)
 
-            try:
-                sql_code: str = f"INSERT INTO product_info VALUES ('{link}', '{modified_name}', '{price}', {average_stars})"
-                self.execute_to_postgres(host, user, password, dbname, port, sql_code)
+                link: str = data["Friendly ID"]
+                modified_name: str = data["Name"].replace("'","/") # Name can't contain apostrophe as this is the marks used for a select query
+                
+                try:
+                    price = float(data["Price"][1:])
+                except ValueError:
+                    price = 0
+                
+                try:
+                    average_stars = float(data["Number of stars"])
+                except ValueError:
+                    average_stars = 0
+
+                try:
+                    sql_code: str = f"INSERT INTO product_info VALUES ('{link}', '{modified_name}', '{price}', {average_stars})"
+                    self.execute_to_postgres(host, user, password, dbname, port, sql_code)
+
+                except:
+
+                    list_of_records: list[tuple] = self.get_all_records(host, user, password, dbname, port)
+
+                    if self.check_if_record_is_exactly_the_same(link, modified_name, price, average_stars, list_of_records):
+                        
+                        sql_code: str = f"UPDATE product_info SET link = '{link}', name = '{modified_name}', price = '{price}', number_of_stars = '{average_stars}' WHERE link = '{link}';"
+                        self.execute_to_postgres(host, user, password, dbname, port, sql_code) #
+
+                    else:
+
+                        print(f"The record for {modified_name} already exists")
 
             except:
 
-                list_of_records: list[tuple] = self.get_all_records(host, user, password, dbname, port)
+                print(f"{product_directory} has no records")
 
-                if self.check_if_record_is_exactly_the_same(link, modified_name, price, average_stars, list_of_records):
-                    
-                    sql_code: str = f"UPDATE product_info SET link = '{link}', name = '{modified_name}', price = '{price}', number_of_stars = '{average_stars}' WHERE link = '{link}';"
-                    self.execute_to_postgres(host, user, password, dbname, port, sql_code) #
-
-                else:
-
-                    print(f"The record for {modified_name} already exists")
                 
 
 
@@ -570,7 +580,9 @@ if __name__ == "__main__":
     # scraper.store_all_files_locally(all_product_info)
     # scraper.upload_to_postgres(HOST, USER, PASSWORD, DATABASE, PORT)
     # scraper.create_postgres_table(HOST, USER, PASSWORD, DATABASE, PORT)
-    scraper.upload_record_to_postgres(HOST, USER, PASSWORD, DATABASE, PORT)
+    # scraper.upload_record_to_postgres(HOST, USER, PASSWORD, DATABASE, PORT)
+    scraper.scrape_all_product_links()
+
 
     scraper.quit_browser()
 
