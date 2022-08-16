@@ -1,9 +1,8 @@
+from project.scraper import Scraper
 from selenium import webdriver 
 from selenium.webdriver.common.by import By
-import unittest
-from project.scraper import Scraper
 import os
-
+import unittest
 
 class TestScraper(unittest.TestCase):
 
@@ -33,7 +32,7 @@ class TestScraper(unittest.TestCase):
         self.driver.get('https://www.myprotein.com/nutrition/vitamins.list')
         product = self.driver.find_element(By.CLASS_NAME, 'sectionPeek_item')
         product_link = product.find_element(by=By.TAG_NAME, value='a').get_attribute('href')
-        self.assertEqual(product_link, 'https://www.myprotein.com/vitamins/multivitamin-gummies/12088106.html')
+        self.assertEqual(product_link, 'https://www.myprotein.com/sports-nutrition/alpha-men-multivitamin-tablets/10530421.html')
 
     def test_scraping_product(self):
         self.driver.get('https://www.myprotein.com/sports-nutrition/clear-whey-isolate/12081395.html')
@@ -44,6 +43,17 @@ class TestScraper(unittest.TestCase):
         product_info["Name"] = name
 
         self.assertEqual(product_info, {'Name': 'Clear Whey Isolate'})
+
+    def test_storing_file_locally(self):
+        self.scraper = Scraper()
+
+        test_dict: dict[str:str] = {"test 1": "test 2"}
+        self.scraper.store_file_locally("test_file", "test.json", test_dict, "None")
+
+        PATH: str = r"C:\Users\xiaoh\OneDrive\Documents\AICore\Data-Collection\raw_data"
+        list_of_directories: list[str] = os.listdir(PATH)
+        
+        self.assertIn("test_file", list_of_directories)
 
 
         
