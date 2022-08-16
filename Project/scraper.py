@@ -35,12 +35,14 @@ class Scraper:
         """Clicks 'accept cookies' button and exits the sign up button
         """
 
+        WAIT_TIME = 5
+
         try:
-            WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[3]/div/div[2]/button'))).click()
+            WebDriverWait(self.driver, WAIT_TIME).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[3]/div/div[2]/button'))).click()
         except:
-            WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[4]/div/div[2]/button'))).click()
+            WebDriverWait(self.driver, WAIT_TIME).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[4]/div/div[2]/button'))).click()
         
-        WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[1]/div/div/div[2]/button'))).click()
+        WebDriverWait(self.driver, WAIT_TIME).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="home"]/div[1]/div/div/div[2]/button'))).click()
 
     
     def quit_browser(self) -> None:
@@ -132,7 +134,7 @@ class Scraper:
 
                 name: str = product.find_element(By.CLASS_NAME, 'athenaProductBlock_productName').text 
                 
-                if self.check_if_product_has_been_scraped(product) == True:
+                if self.check_if_product_has_been_scraped(product):
 
                     product_link: str = product.find_element(by=By.TAG_NAME, value='a').get_attribute('href')
                 
@@ -168,6 +170,18 @@ class Scraper:
         
 
     def check_if_product_has_been_scraped(self, product) -> bool:
+
+        """Checks the product about to be scraped with the local raw_data file to see if it exists already, if so then we don't scrape
+        
+        Parameter
+        ---------
+        product:
+            The item inside the list of items inside the html of a webpage
+            
+        Returns
+        -------
+        boolean:
+            True indicates the item is not in local files so can be scraped"""
 
         name: str = product.find_element(By.CLASS_NAME, 'athenaProductBlock_productName').text 
         modified_name: str = name.replace("/", " - ")
@@ -365,7 +379,8 @@ class Scraper:
         directory_name: string
             give a name of the directory to enter so that the data inside that directory is accessible
         bucket_name: string
-            give the name of the bucket on the aws server for which the local files will be stored to"""
+            give the name of the bucket on the aws server for which the local files will be stored to
+        """
         
         s3 = boto3.resource('s3')
 
@@ -374,11 +389,46 @@ class Scraper:
 
     def execute_to_postgres(self, host: str, user: str, password: str, dbname: str, port: int, sql_code: str) -> None:
 
-         with psycopg2.connect(host = host, user = user, password = password, dbname = dbname, port = port) as conn:
+        """Pass a sql command which will be executed through postgres
+        
+        Parameters
+        ----------
+        host: string
+            give the endpoint of the amazon rds
+        user: string
+            give the master username of the amazon rds database
+        password: string
+            give a password for to access the rds
+        dbname: string
+            give the name of the rds database
+        port: int
+            give the port number for the amazon database
+        sql_code: str
+            pass in the code which postgres will execute
+        """
+
+        with psycopg2.connect(host = host, user = user, password = password, dbname = dbname, port = port) as conn:
             with conn.cursor() as cur:
                 cur.execute(sql_code)
 
+
     def create_postgres_table(self, host: str, user: str, password: str, dbname: str, port: int) -> None:
+
+        """Creates a table using postgres with the name of product_info
+        
+        Parameters:
+        -----------
+        host: string
+            give the endpoint of the amazon rds
+        user: string
+            give the master username of the amazon rds database
+        password: string
+            give a password for to access the rds
+        dbname: string
+            give the name of the rds database
+        port: int
+            give the port number for the amazon database
+        """
         
         sql_code: str = "CREATE TABLE product_info (link VARCHAR PRIMARY KEY, name VARCHAR UNIQUE, price FLOAT, number_of_stars FLOAT);"
         
@@ -388,6 +438,7 @@ class Scraper:
     def upload_record_to_postgres(self, host, user, password, dbname, port) -> None: # run once for table creation, run again to insert record
 
         """Uploads record to the postgres application linked to the amazon rds
+        If record already exist but has changed features then will update the table for that entry
 
         Parameters
         ----------
@@ -447,6 +498,27 @@ class Scraper:
 
     def get_all_records(self, host: str, user: str, password: str, dbname: str, port: int) -> list[tuple]:
 
+        """Acceses the table on postgres and extracts all that data in a list of tuples of records in python
+        
+        Parameters
+        ----------
+        host: string
+            host name of the rds database
+        user: string
+            user name for the rds database
+        password: string
+            password made for the database
+        dbname: string
+            master name of the database
+        port: int
+            port number for the rds database
+
+        Returns
+        -------
+        list_of_records: list[tuples]
+            list of tuples, where each tuple is a record for each item
+        """
+
         with psycopg2.connect(host=host, user=user, password=password, dbname=dbname, port=port) as conn:
             with conn.cursor() as cur:
                 sql_code: str = "SELECT * FROM product_info"
@@ -457,6 +529,28 @@ class Scraper:
                 
 
     def check_if_record_is_exactly_the_same(self, link: str, name: str, price: float, number_of_stars:float, list_of_records: list[tuple]) -> bool:
+
+        """Checks if the record considered for inserting is an exact match to any already in the table
+        
+        Parameters
+        ----------
+        link: string
+            the friendly id being passed must be unique and is the primary key
+        name: string
+            the name of the item must be unique
+        price: float
+            price is given in £
+        number_of_stars: float
+            average rating for the item must be a float
+        list_of_records: list[tuple]
+            list of tuples where each tuple is a record inside the table.
+            
+        Returns
+        -------
+        Bool:
+            If true then the record being considered is not an exact match    
+        """
+
         return (link, name, price, number_of_stars) not in list_of_records
 
 
