@@ -20,8 +20,11 @@ class Scraper:
     def __init__(self):
         
         self.options = Options()
-        self.options.add_argument("--headless")
-        self.options.add_argument("--disable-gpu")
+        self.options.add_argument("--headless") # more thought here
+        self.options.add_argument("--no-sandbox")
+        self.options.add_argument("--disable-dev-shm-usage")
+        self.options.add_argument("--window-size=1920,1080")
+        self.options.add_argument("--start-maximized")
         self.driver: webdriver = webdriver.Chrome(options=self.options)
         self.driver.get("https://www.myprotein.com/")
         self.accept_cookies_and_exit_signup()
