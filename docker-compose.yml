@@ -14,4 +14,9 @@ services:
     image: prom/node-exporter
     ports:
       - 9100:9100
-    
+  
+  docker:
+    container_name: docker
+    image: f257f6face36
+    ports:
+      - 9323:9323
