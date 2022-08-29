@@ -74,4 +74,17 @@ Within the same method of storing json files, the urllib.request module is impor
 <img width="392" alt="image" src="https://user-images.githubusercontent.com/109103538/187251333-e77bdb35-4222-4f8a-a1a3-d1736d8530fe.png">
 
 
-#  
+# Milestone 5
+  
+This milestone taught me the importance of refactoring code to make it run more efficiently and have less demand on computer resources. To do so, I ran through the code and checked for features such as nested loops which are more demanding to run and unneccessary try/except blocks.
+  
+I also improved the structure of my working directory by creating two separate directories 'project' for my scraper.py and 'test' for unit testing. A setup.py file is also added to the main directory and using the setuptools module, I wrote the setup requirements which allows the scraper.py and test_scraper.py to run each other without having to be in the same directory.
+  
+The test_scraper.py uses the unittest module to test the different methods inside my scraper.py to ensure the methods give the expected outcome and in other cases, would help identify if any exceptions are being ignored.
+  
+An example is testing whether a method returns the expected type.
+  
+<img width="411" alt="image" src="https://user-images.githubusercontent.com/109103538/187253260-ed5f5fce-3473-4d1d-a281-b110a2c112cd.png">
+  
+The setUp() method runs before every unit test and the follow up method ensures that the method being tested returns my expected type of a list.
+
