@@ -113,5 +113,16 @@ The script then goes into my local files and converts the .json data back into a
 This block of code then uploads the data as a record to postgres in the form of a table.
 
 
-#
+# Milestone 7
+  
+This milestone required me to do a final refactoring of my code before containerisation in the next milestone.
+The other major part of the milestone involves the prevention of my code from rescraping. The way I've done this is by creating methods to prevent rescraping and uploading the exact same records to postgres.
+  
+<img width="767" alt="image" src="https://user-images.githubusercontent.com/109103538/187263865-985dc3b3-935c-4c09-a339-0a6c67e0302a.png">
+<img width="790" alt="image" src="https://user-images.githubusercontent.com/109103538/187263955-0f2a050e-44be-444e-986e-431f2744057a.png">
+  
+Checking for rescraping checks against my local directory to see if the product is already present.
+Whilst checking if record exists checks against the postgres database and compares to see if the records are exactly identical. If they are exactly identical then no action is taken, if the product id is different to all the pre-existing records, then the new record is added. However, if the product id already exists but the record is not an exact copy, then it replaces the old record with the updated.
+
+  
 
