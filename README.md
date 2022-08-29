@@ -88,3 +88,30 @@ An example is testing whether a method returns the expected type.
   
 The setUp() method runs before every unit test and the follow up method ensures that the method being tested returns my expected type of a list.
 
+
+# Milestone 6
+
+This milestone walked me through the storing of infomration onto a cloud service. In this case, Amazon RDS and the S3 bucket.
+Using the boto3 library, I stored the .json dictionaries for each item and their .jpg image onto the aws S3 bucket in their own folders and this would happen as I ran the method.
+
+<img width="449" alt="image" src="https://user-images.githubusercontent.com/109103538/187254483-5a868062-e3cd-4381-b0cb-d171049d6765.png">
+<img width="673" alt="image" src="https://user-images.githubusercontent.com/109103538/187259085-8b24840c-b980-4528-a3bc-d5a8af6d1fb0.png">
+
+
+Another method was also added and this used postgres and the library of psychopg to upload my scraped data into a postgres table where I can then query using SQL.
+
+<img width="781" alt="image" src="https://user-images.githubusercontent.com/109103538/187259692-45159fb6-77f7-4af2-bb2a-63d2e0f240c4.png">
+
+This creates a postgres table names 'product_info.
+
+The script then goes into my local files and converts the .json data back into a dictionary.
+
+<img width="788" alt="image" src="https://user-images.githubusercontent.com/109103538/187260233-d12117fe-d772-4170-aa66-dcf3494b26e9.png">
+
+<img width="759" alt="image" src="https://user-images.githubusercontent.com/109103538/187260527-8c04a749-b424-4645-b6ef-dceda559edd9.png">
+
+This block of code then uploads the data as a record to postgres in the form of a table.
+
+
+#
+
