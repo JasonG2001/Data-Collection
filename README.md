@@ -145,3 +145,22 @@ This required me to make a keypair and make it private along with a security gro
   
 Using the ssh command, I could connect to the EC2 instance
 <img width="650" alt="image" src="https://user-images.githubusercontent.com/109103538/187268358-bc5a9fc0-84d7-4b76-81fd-cd20843f0384.png">
+
+  
+# Milestone 9
+  
+This milestone taught me how to use prometheus to monitor my applications using a prometheus.yml file.
+  
+<img width="788" alt="image" src="https://user-images.githubusercontent.com/109103538/187271063-938e2bff-10f8-471c-bc13-03c99943a410.png">
+
+The file instructs prometheus on the jobs that it needs to monitor and with localhost:9090, I can monitor the metrics of prometheus itself, node-exporter and docker as it runs the container for my scraper.
+  
+The metrics can be displayed visually and more aesthetically using grafana on localhost:3000. These metrics are displayed graphically through a grafana dashboard.
+  
+<img width="492" alt="image" src="https://user-images.githubusercontent.com/109103538/187273267-7acda703-71e1-4014-81a0-7962593e6c74.png">
+<img width="464" alt="image" src="https://user-images.githubusercontent.com/109103538/187273303-98c7c548-8780-4551-b965-c0dcda2d320a.png">
+
+These are two examples of the metrics that are available.
+  
+
+# Milestone 10  
