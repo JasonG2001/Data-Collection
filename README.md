@@ -125,4 +125,23 @@ Checking for rescraping checks against my local directory to see if the product 
 Whilst checking if record exists checks against the postgres database and compares to see if the records are exactly identical. If they are exactly identical then no action is taken, if the product id is different to all the pre-existing records, then the new record is added. However, if the product id already exists but the record is not an exact copy, then it replaces the old record with the updated.
 
   
+# Milestone 8
+  
+This milestone taught me how to containerise my code so that others can access it with all its dependancies simply by getting it off dockerhub. The first step was to ensure that I could run the scraper in headless mode without the chrome browser opening. I added this in the initialiser.
+  
+<img width="407" alt="image" src="https://user-images.githubusercontent.com/109103538/187265815-0e5dee64-b7ba-4a74-affd-63149d794232.png">
 
+Once confirmed,I created a docker file which would run commands to gather the dependancies that were required for the scraper to run. This information was gathered from a requirements.txt file I created.
+  
+<img width="182" alt="image" src="https://user-images.githubusercontent.com/109103538/187266364-c1839d37-7ced-4533-a601-6788bae7d779.png">
+<img width="675" alt="image" src="https://user-images.githubusercontent.com/109103538/187266432-132ea81c-eac7-472f-96bf-7c6ab5a199fc.png">
+
+Using the docker file, I would then build the image for the the scraper and push this to Dockerhub. This way anyone can access my image from the dockerhub and use the application.
+  
+<img width="899" alt="image" src="https://user-images.githubusercontent.com/109103538/187266746-691fb94b-03ee-4973-8e52-aeb468cf9a6b.png">
+
+I then used aws to create an EC2 instance to run my scraper using the resources of another computer. <img width="231" alt="image" src="https://user-images.githubusercontent.com/109103538/187267214-74d9ba11-f6d7-4a6c-940c-3f5e1257f88b.png">
+This required me to make a keypair and make it private along with a security group that would allow ssh port 22 connection from my pc.
+  
+Using the ssh command, I could connect to the EC2 instance
+<img width="650" alt="image" src="https://user-images.githubusercontent.com/109103538/187268358-bc5a9fc0-84d7-4b76-81fd-cd20843f0384.png">
