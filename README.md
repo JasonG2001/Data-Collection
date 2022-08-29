@@ -40,6 +40,38 @@ These are used to get the product links in each button, whilst
 
 <img width="533" alt="image" src="https://user-images.githubusercontent.com/109103538/187245435-4db08135-8706-4b73-b33a-cba4512090c3.png">
 
-This repeates the process for all the buttons on the site.
+This repeats the process for all the buttons on the site.
 
 
+# Milestone 4
+  
+This milestone involves the gathering of specific information and identification for each product which I plan to scrape.
+  
+<img width="508" alt="image" src="https://user-images.githubusercontent.com/109103538/187246934-022b3c9a-7848-413a-85c6-51134205a2cb.png">
+<img width="658" alt="image" src="https://user-images.githubusercontent.com/109103538/187246989-be9ab94f-0912-47a0-a2c1-2321a88c1d02.png">
+<img width="772" alt="image" src="https://user-images.githubusercontent.com/109103538/187247045-eb959586-e355-4780-a574-5f5331158672.png">
+
+This method scrapes each product link obtained before the scrape_all_products() method repeats this process for all the product links
+  
+<img width="497" alt="image" src="https://user-images.githubusercontent.com/109103538/187247414-5b215931-56fc-442a-b211-2f28f5bce364.png">
+
+Therefore, my code gathers the links of all items first and then scrapes each link rather than scraping as the links are gathered.
+  
+As part of the milestone, image data had to ge gathered and this was done by scraping each product for their image source. The source is the link for the image.
+  
+<img width="774" alt="image" src="https://user-images.githubusercontent.com/109103538/187248325-a851b406-b240-4885-845c-c82def398849.png">
+
+I decided to use the product link as the friendly id for each item because this is unique and deterministic given the website. Unfortunately, the website didn't contain its own product id for each item which would make a better friendly id. Using the uuid module, I was able to generate a uuid for each of the items which I scrape.
+  
+All the data scraped is stored inside a dictionary and stored locally onto a .json file on my local drive using the os module in python. The script should create a directory named with each of the item names and these are created inside the 'raw_data' directory.
+  
+<img width="608" alt="image" src="https://user-images.githubusercontent.com/109103538/187250805-2fa9fe9a-c906-43a4-8e2d-f5f2e5e3323e.png">
+  
+json.dump() method from the json module converts the python dictionary into the .json file stored inside each item directory.
+  
+Within the same method of storing json files, the urllib.request module is imported and used to download the image data and stores this as a .jpg inside the same directory as the .json file.
+  
+<img width="392" alt="image" src="https://user-images.githubusercontent.com/109103538/187251333-e77bdb35-4222-4f8a-a1a3-d1736d8530fe.png">
+
+
+#  
