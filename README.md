@@ -164,3 +164,9 @@ These are two examples of the metrics that are available.
   
 
 # Milestone 10  
+  
+This short and final milestone has involved the use of Github actions to push my containers onto dockerhub when a push request is made to Github.
+
+<img width="344" alt="image" src="https://user-images.githubusercontent.com/109103538/188286407-d9de6348-aa53-4f0a-8a45-2cb7efda4138.png">
+
+The jobs in Github are written and shown.
